@@ -1,6 +1,11 @@
 import React, {Component} from 'react'
 import ToDoList from './ToDoList'
 import ToDoForm from './ToDoForm'
+import Promise from 'bluebird'
+
+// Add a ToDo and upon success sortToDosByCompletion
+// Fetch initial ToDos and sortToDosByCompletion
+
 
 const styles = {
   resetButton: {
@@ -27,11 +32,19 @@ class ToDoContainer extends Component {
   }
 
   componentDidMount () {
-    let toDos = JSON.parse(localStorage.getItem('allToDos')) || undefined
-    this.setState({ allToDos: toDos })
-    if(toDos) {
-      this.sortToDosByCompletion()
-    }
+    this.fetchInitialToDos()
+      .then(() => this.sortToDosByCompletion())
+  }
+
+  fetchInitialToDos = () => {
+    return new Promise((resolve, reject) => {
+      let toDos = JSON.parse(localStorage.getItem('allToDos')) || undefined
+      if(toDos) {
+        resolve(this.setState({ toDos }))
+      } else {
+        reject(alert('No ToDos Yet'))
+      }
+    })
   }
 
   addToDo = () => {
@@ -73,18 +86,16 @@ class ToDoContainer extends Component {
   }
 
   sortToDosByCompletion = () => {
-    setTimeout(() => {
-      const allTodos = this.state.allToDos
-      const completed = allTodos.filter(item =>
-        item.complete // same as item.complete === true
-      )
-      const incomplete = allTodos.filter(item =>
-        !item.complete // same as item.complete === false
-      )
-      this.setState({ completedToDos: completed, incompleteToDos: incomplete })
-      const updatedAllTodosArray = completed.concat(incomplete)
-      localStorage.setItem('allToDos', JSON.stringify(updatedAllTodosArray))
-    }, 0)
+    const allTodos = this.state.allToDos
+    const completed = allTodos.filter(item =>
+      item.complete // same as item.complete === true
+    )
+    const incomplete = allTodos.filter(item =>
+      !item.complete // same as item.complete === false
+    )
+    this.setState({ completedToDos: completed, incompleteToDos: incomplete })
+    const updatedAllTodosArray = completed.concat(incomplete)
+    localStorage.setItem('allToDos', JSON.stringify(updatedAllTodosArray))
   }
 
   render () {
